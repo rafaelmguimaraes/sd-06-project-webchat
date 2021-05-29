@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SocketIO - teste</title>
+  <!-- <script src="/socket.io/socket.io.js"></script> -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.27.0/moment-with-locales.min.js"></script>
+</head>
+<body>
+  <h1>Webchat</h1>
+  <h2>Digite seu Nickname</h2>
+  <input
+    data-testid="nickname-box"
+    type="text"
+    id="textNickname"
+    placeholder="Insira seu nome aqui"
+  >
+  <button id="sendNickname" data-testid="nickname-button">
+    Salvar
+  </button>
+  
+  <h2>Usuários</h2>
+  <ul id="displayNickname">
+  </ul>
+  
+  <h2>Chat</h2>
+  <ul id='displayMessage'>
+  </ul>
+  
+  <input
+    data-testid="message-box"
+    type="text"
+    id="textMessage"
+    placeholder="Digite uma nova mensagem aqui"
+  >
+  <button type="button" id="sendMessage" data-testid="send-button">
+    Enviar
+  </button>
+  
+  <script>
+    const socket = io();
+    const sendMessage = document.querySelector('#sendMessage');
+    const inputMessage = document.querySelector('#textMessage');
+    
+    sendMessage.addEventListener('click', () =>{
+      socket.emit('message', inputMessage.value);
+      
+      //socket.emit('send-nickname', 'zezinho');
+      inputMessage.value = ''
+      return false;
+    });
+    // cria uma `li` e coloca dentro da `ul` com `id` mensagens
+    const createMessage = (message) => {
+      const messagesUl = document.querySelector('#displayMessage');
+      const li = document.createElement('li');
+      li.innerText = message;
+      messagesUl.appendChild(li);
+    }
+
+    const listOnlineUsers = (onlineUsers) => {
+      const user = sessionStorage.getItem('user');
+      const onlineUsersUl = document.querySelector('#displayNickname');
+      onlineUsersUl.innerHTML = '';
+      onlineUsers.forEach((onlineUser) => {
+        const li = document.createElement('li');
+        li.innerText = user === onlineUser ? `* ${onlineUser}`: onlineUser;
+        onlineUsersUl.appendChild(li);
+      });
+    }
+
+    socket.on('messageServer', (object) => createMessage(object.message));
+    socket.on('onlineUsers', (array) => listOnlineUsers(array));
+    socket.on('whoAmI', (user) => sessionStorage.setItem('user', user));
+  </script>
+</body>
+</html>
